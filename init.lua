@@ -44,8 +44,8 @@ P.S. You can delete this when you're done too. It's your config now :)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 vim.keymap.set('i', '<C-J>', 'copilot#Accept("\\<CR>")', {
-    expr = true,
-    replace_keycodes = false
+  expr = true,
+  replace_keycodes = false
 })
 vim.g.copilot_no_tab_map = true
 
@@ -100,7 +100,7 @@ require('lazy').setup({
 
       -- Useful status updates for LSP
       -- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
-      { 'j-hui/fidget.nvim', opts = {} },
+      { 'j-hui/fidget.nvim',       opts = {} },
 
       -- Additional lua configuration, makes nvim stuff amazing!
       'folke/neodev.nvim',
@@ -125,7 +125,7 @@ require('lazy').setup({
   },
 
   -- Useful plugin to show you pending keybinds.
-  { 'folke/which-key.nvim', opts = {} },
+  { 'folke/which-key.nvim',  opts = {} },
   {
     -- Adds git related signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
@@ -200,7 +200,6 @@ require('lazy').setup({
       end,
     },
   },
-
   {
     -- Theme inspired by Atom
     'navarasu/onedark.nvim',
@@ -616,8 +615,14 @@ require('mason-lspconfig').setup()
 --
 --  If you want to override the default filetypes that your language server will attach to you can
 --  define the property 'filetypes' to the map in question.
+-- local nvim_lsp = require('lspconfig')
 local servers = {
-  clangd = {},
+  clangd = {
+    filetypes = { 'c', 'cpp' },
+    -- cmd = { 'clangd', '--background-index' },
+    -- root_dir = nvim_lsp.util.root_pattern('compile_commands.json', 'compile_flags.txt', '.git'),
+    -- on_attach = on_attach,
+  },
   gopls = {},
   -- pyright = {},
   rust_analyzer = {
@@ -700,25 +705,25 @@ cmp.setup {
       behavior = cmp.ConfirmBehavior.Replace,
       select = true,
     },
-     ['<Tab>'] = cmp.mapping(function(fallback)
-         if cmp.visible() then
-          cmp.select_next_item()
-        elseif luasnip.expand_or_locally_jumpable() then
-          luasnip.expand_or_jump()
-        else
-          fallback()
-        end
-      end, { 'i', 's' }),
-      ['<S-Tab>'] = cmp.mapping(function(fallback)
-        if cmp.visible() then
-          cmp.select_prev_item()
-        elseif luasnip.locally_jumpable(-1) then
-          luasnip.jump(-1)
-        else
-          fallback()
-        end
-      end, { 'i', 's' }),
-    },
+    ['<Tab>'] = cmp.mapping(function(fallback)
+      if cmp.visible() then
+        cmp.select_next_item()
+      elseif luasnip.expand_or_locally_jumpable() then
+        luasnip.expand_or_jump()
+      else
+        fallback()
+      end
+    end, { 'i', 's' }),
+    ['<S-Tab>'] = cmp.mapping(function(fallback)
+      if cmp.visible() then
+        cmp.select_prev_item()
+      elseif luasnip.locally_jumpable(-1) then
+        luasnip.jump(-1)
+      else
+        fallback()
+      end
+    end, { 'i', 's' }),
+  },
   sources = {
     { name = 'nvim_lsp' },
     { name = 'luasnip' },
@@ -726,7 +731,7 @@ cmp.setup {
   },
 }
 
--- debugging 
+-- debugging
 require('dapui').setup()
 
 local dap, dapui = require("dap"), require("dapui")
@@ -762,7 +767,7 @@ dap.adapters.codelldb = {
   port = '${port}',
   executable = {
     command = vim.fn.stdpath('data') .. '/mason/bin/codelldb', -- Path managed by Mason
-    args = {'--port', '${port}'},
+    args = { '--port', '${port}' },
   }
 }
 
@@ -799,23 +804,39 @@ vim.keymap.set("n", "<leader>ll", function() harpoon:list():next() end)
 -- basic telescope configuration
 local conf = require("telescope.config").values
 local function toggle_telescope(harpoon_files)
-    local file_paths = {}
-    for _, item in ipairs(harpoon_files.items) do
-        table.insert(file_paths, item.value)
-    end
+  local file_paths = {}
+  for _, item in ipairs(harpoon_files.items) do
+    table.insert(file_paths, item.value)
+  end
 
-    require("telescope.pickers").new({}, {
-        prompt_title = "Harpoon",
-        finder = require("telescope.finders").new_table({
-            results = file_paths,
-        }),
-        previewer = conf.file_previewer({}),
-        sorter = conf.generic_sorter({}),
-    }):find()
+  require("telescope.pickers").new({}, {
+    prompt_title = "Harpoon",
+    finder = require("telescope.finders").new_table({
+      results = file_paths,
+    }),
+    previewer = conf.file_previewer({}),
+    sorter = conf.generic_sorter({}),
+  }):find()
 end
 
 vim.keymap.set("n", "<C-e>", function() toggle_telescope(harpoon:list()) end,
-    { desc = "Open harpoon window" })
+  { desc = "Open harpoon window" })
 
+-- auto format on save
+local group = vim.api.nvim_create_augroup("AutoFormat", { clear = true })
+
+-- Define the autocmd
+vim.api.nvim_create_autocmd("BufWritePre", {
+  group = group,
+  pattern = "*",
+  command = "Format",
+})
+-- auto format on saved
+-- vim.cmd([[
+--   augroup AutoFormat
+--     autocmd!
+--     autocmd BufWritePre * Format
+--   augroup END
+-- ]])
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
